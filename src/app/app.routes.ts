@@ -7,7 +7,9 @@ import {MagazziniComponent} from './components/magazzini/magazzini';
 import {BoxComponent} from './components/box/box';
 import {ScontiComponent} from './components/sconti/sconti';
 import {ScontiBoxComponent} from './components/sconti-box/sconti-box';
-import {IngredientiComponent} from './ingredienti/ingredienti';
+import {IngredientiComponent} from './components/ingredienti/ingredienti';
+import {AddIngredienteBoxComponent} from './components/add-ingrediente-box/add-ingrediente-box';
+import {OrdiniClientiComponent} from './components/ordini-clienti/ordini-clienti';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -18,6 +20,8 @@ export const routes: Routes = [
   { path: 'sconti', component: ScontiComponent, canActivate: [authGuard] },
   { path: 'sconti-box', component: ScontiBoxComponent, canActivate: [authGuard] },
   { path: 'ingredienti', component: IngredientiComponent, canActivate: [authGuard] },
+  {path: 'ingrediente-box', component:AddIngredienteBoxComponent, canActivate: [authGuard] },
+  {path: 'ordini-clienti', component:OrdiniClientiComponent, canActivate: [authGuard] },
 
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];

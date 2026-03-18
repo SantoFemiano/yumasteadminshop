@@ -1,7 +1,16 @@
 import {Injectable, Optional} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {Allergene, Box, Fornitore, Ingrediente, Magazzino, PageResponse, Sconto} from '../models/admin-models';
+import {
+  AddIngredienteToBoxRequest,
+  Allergene,
+  Box,
+  Fornitore,
+  Ingrediente,
+  Magazzino,
+  PageResponse,
+  Sconto
+} from '../models/admin-models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +18,7 @@ import {Allergene, Box, Fornitore, Ingrediente, Magazzino, PageResponse, Sconto}
 export class AdminService {
   // L'URL base per il controller degli admin
   private apiUrl = 'http://localhost:8084/api/admin';
+
 
   constructor(private http: HttpClient) { }
 
@@ -83,4 +93,25 @@ export class AdminService {
     const publicUrl = this.apiUrl.replace('/admin', '/public');
     return this.http.get(`${publicUrl}/box/detail/${boxId}`);
   }
+
+  addIngredientToBox(boxId: number, request: AddIngredienteToBoxRequest): Observable<any> {
+    return this.http.post(`${this.apiUrl}/addIngredientToBox/${boxId}`, request);
+  }
+
+  getIngredientiDellaBox(boxId: number): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:8084/api/public/box/ingredienti/${boxId}`);
+    }
+
+  getTuttiGliOrdini(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/ordini/clienti`);
+  }
+
+  getClienti(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/clienti`);
+  }
+
+  getDettagliOrdine(idOrdine: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/ordine/${idOrdine}/dettagli`);
+  }
+
 }

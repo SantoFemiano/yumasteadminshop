@@ -1,9 +1,9 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService} from '../services/admin';
-import { Ingrediente, Fornitore, Allergene} from '../models/admin-models';
-import { NavbarComponent} from '../components/navbar/navbar';
+import { AdminService} from '../../services/admin';
+import { Ingrediente, Fornitore, Allergene} from '../../models/admin-models';
+import { NavbarComponent} from '../navbar/navbar';
 import { finalize } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 

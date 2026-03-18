@@ -36,7 +36,7 @@
           <th>Prezzo Scontato</th>
           <th>Sconto</th>
           <th>Stato</th>
-          <th>Info</th> </tr>
+          <th>Valori & Allergeni</th> </tr>
         </thead>
         <tbody>
           @if (isLoading) {
@@ -133,7 +133,7 @@
             </div>
 
             <div class="col-md-2 mb-3">
-              <label class="form-label small fw-bold">Q.tà in Box</label>
+              <label class="form-label small fw-bold">Quantità Box</label>
               <input type="number" min="1" class="form-control" name="quantitaInBox" [(ngModel)]="nuovaBox.quantitaInBox" required>
             </div>
           </div>

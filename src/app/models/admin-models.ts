@@ -49,6 +49,11 @@ export interface Sconto {
   fineSconto: string;   // Formato data: YYYY-MM-DD
 }
 
+export interface AddIngredienteToBoxRequest {
+  ingredienteId: number;
+  quantita: number;
+}
+
 export interface Fornitore {
   id?: number;
   partitaIva: string;

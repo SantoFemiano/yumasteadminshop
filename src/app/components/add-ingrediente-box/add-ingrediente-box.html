@@ -1,0 +1,132 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+  <div class="row g-4">
+
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+        <div class="card-header bg-dark text-white p-4 border-0">
+          <h4 class="mb-0 fw-bold">Componi Box</h4>
+          <p class="mb-0 text-white-50 small mt-1">Aggiungi nuovi ingredienti alla box</p>
+        </div>
+
+        <div class="card-body p-4 bg-light">
+          <form [formGroup]="composizioneForm" (ngSubmit)="onSubmit()">
+
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary">Box di destinazione *</label>
+              <select class="form-select form-select-lg shadow-sm border-0" formControlName="boxId">
+                <option value="" disabled selected>👉 Scegli una box...</option>
+                @for (box of boxes; track box.id) {
+                  <option [value]="box.id">{{ box.nome }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary">Seleziona Ingrediente *</label>
+              <select class="form-select shadow-sm border-0" formControlName="ingredienteId">
+                <option value="" disabled selected>🔍 Cerca ingrediente...</option>
+                @for (ing of ingredienti; track ing.id) {
+                  <option [value]="ing.id">{{ ing.nome }} ({{ ing.unitaMisura }})</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary">Quantità *</label>
+              <div class="input-group shadow-sm">
+                <input type="number" class="form-control border-0" formControlName="quantita" step="1" placeholder="0.00">
+                <span class="input-group-text bg-white border-0 text-muted">unità</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-3"
+                    [disabled]="composizioneForm.invalid || isSubmitting">
+
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Salvataggio...
+              } @else {
+                ➕ Aggiungi alla Box
+              }
+
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom-0 p-4 pb-2">
+          <h5 class="fw-bold text-dark mb-0">Contenuto Attuale</h5>
+        </div>
+
+        <div class="card-body p-4 pt-2">
+
+          @if (!composizioneForm.get('boxId')?.value) {
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted p-5 bg-light rounded-4 border border-dashed">
+              <div class="display-4 mb-3">📦</div>
+              <h5>Nessuna box selezionata</h5>
+              <p class="text-center mb-0">Seleziona una box dal pannello a sinistra per visualizzare e gestire i suoi ingredienti.</p>
+            </div>
+          }
+          @else {
+
+            @if (isLoading) {
+              <div class="d-flex justify-content-center align-items-center py-5 h-100">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                  <span class="visually-hidden">Caricamento...</span>
+                </div>
+              </div>
+            }
+            @else {
+
+              @if (ingredientiAttuali.length > 0) {
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light text-secondary">
+                    <tr>
+                      <th scope="col" class="ps-3 py-3 rounded-start">Ingrediente</th>
+                      <th scope="col" class="py-3">Quantità inserita</th>
+                      <th scope="col" class="pe-3 py-3 rounded-end text-end">Azione</th>
+                    </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                      @for (ing of ingredientiAttuali; track $index) {
+                        <tr>
+                          <td class="ps-3 py-3 fw-medium">{{ ing.nomeIngrediente }}</td>
+                          <td class="py-3">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fs-6">
+                              {{ ing.quantita }} {{ ing.unita }}
+                            </span>
+                          </td>
+                          <td class="pe-3 py-3 text-end">
+                            <button class="btn btn-sm btn-outline-danger rounded-circle" disabled title="Funzione da implementare">
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+              @else {
+                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning-emphasis p-4 rounded-4 d-flex align-items-center">
+                  <div class="fs-1 me-4">⚠️</div>
+                  <div>
+                    <h6 class="fw-bold mb-1">Box Vuota</h6>
+                    <p class="mb-0">Questa box non contiene ancora nessun ingrediente. Usa il form per iniziare a comporla!</p>
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

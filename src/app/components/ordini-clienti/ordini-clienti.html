@@ -1,0 +1,188 @@
+<app-navbar></app-navbar>
+
+<div class="container py-5">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Gestione Ordini</h2>
+      <p class="text-muted mb-0">Visualizza e filtra gli ordini effettuati</p>
+    </div>
+
+    <div class="d-flex gap-3 align-items-center">
+      <select class="form-select shadow-sm border-0" [(ngModel)]="clienteSelezionato" (change)="applicaFiltro()">
+        <option value="">🛒 Tutti i clienti</option>
+        @for (cliente of clienti; track cliente.id) {
+          <option [value]="cliente.id">{{ cliente.nome }} {{ cliente.cognome }} ({{ cliente.email }})</option>
+        }
+      </select>
+
+      <button class="btn btn-primary shadow-sm px-4" (click)="caricaDati()" [disabled]="isLoading">
+        @if (isLoading) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        } @else {
+          🔄 Aggiorna
+        }
+      </button>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+
+      @if (isLoading) {
+        <div class="d-flex justify-content-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      }
+      @else if (ordiniVisualizzati.length === 0) {
+        <div class="text-center py-5 text-muted bg-light">
+          <div class="display-4 mb-3">🧾</div>
+          <h5>Nessun ordine trovato</h5>
+          <p>Nessun risultato per il filtro selezionato.</p>
+        </div>
+      }
+      @else {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary">
+            <tr>
+              <th scope="col" class="ps-4 py-3">Ordine</th>
+              <th scope="col" class="py-3">Cliente</th>
+              <th scope="col" class="py-3">Data</th>
+              <th scope="col" class="py-3">Totale</th>
+              <th scope="col" class="py-3">Stato Ordine</th>
+              <th scope="col" class="py-3">Spedizione</th>
+              <th scope="col" class="pe-4 py-3 text-end">Azioni</th>
+            </tr>
+            </thead>
+            <tbody class="border-top-0">
+              @for (ordine of ordiniVisualizzati; track ordine.id) {
+                <tr>
+                  <td class="ps-4 py-3 fw-bold text-dark">{{ ordine.codiceOrdine }}</td>
+
+                  <td class="py-3 fw-medium text-primary">
+                    👤 {{ ordine.nomeCliente }} {{ ordine.cognomeCliente }}
+                  </td>
+
+                  <td class="py-3 text-muted">{{ ordine.dataOrdine | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="py-3 fw-bold">{{ ordine.totalePrezzo | currency:'EUR':'symbol' }}</td>
+
+                  <td class="py-3">
+                    <span class="badge rounded-pill px-3 py-2" [ngClass]="getBadgeClass(ordine.statoOrdine)">
+                      {{ ordine.statoOrdine }}
+                    </span>
+                  </td>
+
+                  <td class="py-3">
+                    <span class="badge rounded-pill px-3 py-2" [ngClass]="getBadgeClass(ordine.statoSpedizione)">
+                      {{ ordine.statoSpedizione }}
+                    </span>
+                  </td>
+
+                  <td class="pe-4 py-3 text-end">
+                    <button class="btn btn-sm btn-outline-secondary rounded-3 shadow-sm" (click)="apriDettagli(ordine)">
+                      🔍 Dettagli
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@if (isModalOpen) {
+  <div class="modal fade show d-block" style="background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+
+        <div class="modal-header bg-light border-bottom-0 pb-3">
+          <div>
+            <h5 class="modal-title fw-bold mb-0">Dettaglio Ordine {{ ordineSelezionato?.codiceOrdine }}</h5>
+            <span class="text-muted small">
+              Cliente: {{ ordineSelezionato?.nomeCliente }} {{ ordineSelezionato?.cognomeCliente }}
+            </span>
+          </div>
+          <button type="button" class="btn-close shadow-none" (click)="chiudiModale()"></button>
+        </div>
+
+        <div class="modal-body p-4 pt-2">
+
+          @if (isLoadingDettagli) {
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-3 text-muted">Recupero informazioni...</p>
+            </div>
+          } @else if (dettagliOrdine.length > 0) {
+
+            <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">📦 Prodotti Acquistati</h6>
+            <div class="table-responsive mb-4">
+              <table class="table table-borderless table-striped align-middle">
+                <thead class="bg-white text-muted small text-uppercase border-bottom">
+                <tr>
+                  <th>Prodotto</th>
+                  <th class="text-center">Q.tà</th>
+                  <th class="text-end">Prezzo Unit.</th>
+                  <th class="text-end">Totale Rigo</th>
+                </tr>
+                </thead>
+                <tbody>
+                  @for (riga of dettagliOrdine; track riga.boxid) {
+                    <tr>
+                      <td class="fw-medium">{{ riga.nomeBox }}</td>
+                      <td class="text-center">{{ riga.quantita }}x</td>
+                      <td class="text-end">{{ riga.prezzounitario | currency:'EUR':'symbol' }}</td>
+                      <td class="text-end fw-bold">
+                        {{ (riga.prezzounitario * riga.quantita) | currency:'EUR':'symbol' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="row g-4 bg-light rounded-4 p-3 border m-0">
+
+              <div class="col-md-6">
+                <h6 class="fw-bold text-secondary mb-2">📍 Indirizzo di Spedizione</h6>
+                <p class="mb-0 small">
+                  {{ dettagliOrdine[0].indirizzoresponsedto.via }} {{ dettagliOrdine[0].indirizzoresponsedto.civico }}<br>
+                  {{ dettagliOrdine[0].indirizzoresponsedto.cap }}, {{ dettagliOrdine[0].indirizzoresponsedto.citta }} ({{ dettagliOrdine[0].indirizzoresponsedto.provincia }})<br>
+                  <span class="mt-2 d-inline-block text-muted">Corriere: <strong>{{ dettagliOrdine[0].corriere }}</strong></span>
+                </p>
+              </div>
+
+              <div class="col-md-6 border-start">
+                <h6 class="fw-bold text-secondary mb-2">💳 Dati Pagamento</h6>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="text-muted">Metodo:</span>
+                  <strong>{{ dettagliOrdine[0].metodopagamento }}</strong>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="text-muted">Data Pagamento:</span>
+                  <span>{{ dettagliOrdine[0].datapagamento | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-uppercase fw-bold text-muted small">Totale Ordine</span>
+                  <h5 class="text-primary fw-bold mb-0">{{ ordineSelezionato?.totalePrezzo | currency:'EUR':'symbol' }}</h5>
+                </div>
+              </div>
+            </div>
+
+          } @else {
+            <div class="alert alert-warning">Nessun dettaglio trovato per questo ordine.</div>
+          }
+        </div>
+
+        <div class="modal-footer border-top-0 bg-light">
+          <button type="button" class="btn btn-secondary px-4 rounded-pill" (click)="chiudiModale()">Chiudi Finestra</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
