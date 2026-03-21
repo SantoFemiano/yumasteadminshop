@@ -1,4 +1,4 @@
-import {Injectable, Optional} from '@angular/core';
+import {Injectable} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
@@ -6,7 +6,7 @@ import {
   Allergene,
   Box,
   Fornitore,
-  Ingrediente,
+  Ingrediente, IngredienteMagazzinoRequest, IngredienteMagazzinoResponse,
   Magazzino,
   PageResponse,
   Sconto
@@ -112,6 +112,14 @@ export class AdminService {
 
   getDettagliOrdine(idOrdine: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/ordine/${idOrdine}/dettagli`);
+  }
+
+  getIngredienteMagazzino(): Observable<IngredienteMagazzinoResponse[]> {
+    return this.http.get<IngredienteMagazzinoResponse[]>(`${this.apiUrl}/ingrediente/magazzino`);
+  }
+
+  addIngredienteMagazzino(request: IngredienteMagazzinoRequest): Observable<IngredienteMagazzinoResponse> {
+    return this.http.post<IngredienteMagazzinoResponse>(`${this.apiUrl}/add/ingrediente/magazzino`, request);
   }
 
 }

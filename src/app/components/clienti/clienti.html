@@ -1,0 +1,79 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="text-secondary fw-bold">Gestione Clienti</h2>
+        <p class="text-muted">Visualizza i clienti registrati e i loro indirizzi di spedizione.</p>
+      </div>
+      <div>
+        <button class="btn btn-primary shadow-sm" (click)="caricaClienti()" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-arrow-clockwise me-1"></i>
+          }
+          Aggiorna Lista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Nome e Cognome</th>
+          <th>Email</th>
+          <th>Codice Fiscale</th>
+          <th>Indirizzi di Spedizione</th>
+        </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="5" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
+              </td>
+            </tr>
+          } @else {
+            @for (cliente of clienti; track cliente.id) {
+              <tr>
+                <td class="fw-bold text-muted">#{{ cliente.id }}</td>
+                <td class="fw-semibold text-primary">{{ cliente.nome }} {{ cliente.cognome }}</td>
+                <td>{{ cliente.email }}</td>
+                <td>{{ cliente.cf }}</td>
+                <td>
+                  @if (cliente.indirizzi && cliente.indirizzi.length > 0) {
+                    <ul class="list-unstyled mb-0 small">
+                      @for (indirizzo of cliente.indirizzi; track indirizzo.id) {
+                        <li class="mb-2">
+                          <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                          <strong>{{ indirizzo.via }}, {{ indirizzo.civico }}</strong><br>
+                          <span class="text-muted ms-3">{{ indirizzo.cap }} {{ indirizzo.citta }} ({{ indirizzo.provincia }})</span>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-muted fst-italic">Nessun indirizzo registrato</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-5 text-muted">
+                  <i class="bi bi-people-fill fs-3 d-block mb-2"></i>
+                  Nessun cliente registrato a sistema.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

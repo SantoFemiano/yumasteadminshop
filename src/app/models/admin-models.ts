@@ -10,6 +10,7 @@ export interface Fornitore {
 }
 
 export interface Magazzino {
+  id?:number;
   nome: string;
   via: string;
   civico: string;
@@ -94,4 +95,43 @@ export interface Ingrediente {
   attivo: boolean;
   valoriNutrizionali: ValoriNutrizionali;
   allergeniIds: number[];
+}
+
+export interface Indirizzo {
+  id: number;
+  via: string;
+  civico: string;
+  cap: string;
+  citta: string;
+  provincia: string;
+  stato: string;
+}
+
+export interface Cliente {
+  id: number;
+  nome: string;
+  cognome: string;
+  email: string;
+  cf: string; // Codice Fiscale
+  indirizzi: Indirizzo[];
+}
+
+export interface IngredienteMagazzinoRequest {
+  ingredienteId: number;
+  magazzinoId: number;
+  quantita: number;
+  lotto: string;
+  dataIngresso: string;
+}
+
+export interface IngredienteMagazzinoResponse {
+  ingredienteMagazzinoId: number;
+  magazzinoId: number;
+  ingredienteId: number;
+  nomeMagazzino: string;
+  nomeIngrediente: string;
+  quantita: number;
+  unitaMisura: string;
+  lotto: string;
+  dataIngresso: string;
 }

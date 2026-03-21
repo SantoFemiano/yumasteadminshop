@@ -1,19 +1,17 @@
 <app-navbar></app-navbar>
 
 <div class="container mt-5">
-
-<div class="container mt-5">
   <div class="row mb-4">
     <div class="col d-flex justify-content-between align-items-center">
       <div>
         <h2 class="text-secondary fw-bold">Gestione Magazzini</h2>
-        <p class="text-muted">Lista dei magazzini di stoccaggio.</p>
+        <p class="text-muted">Lista dei magazzini di stoccaggio e inventario.</p>
       </div>
       <div>
         <button class="btn btn-success shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalMagazzino">
           <i class="bi bi-plus-lg me-1"></i> Nuovo Magazzino
         </button>
-        <button class="btn btn-primary shadow-sm" (click)="caricaMagazzini()" [disabled]="isLoading">
+        <button class="btn btn-primary shadow-sm" (click)="caricaDati()" [disabled]="isLoading">
           @if (isLoading) {
             <span class="spinner-border spinner-border-sm me-1"></span>
           } @else {
@@ -27,32 +25,38 @@
 
   <div class="card shadow border-0">
     <div class="card-body p-0">
-      <table class="table table-hover mb-0">
+      <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
         <tr>
           <th>Nome Magazzino</th>
           <th>Indirizzo</th>
           <th>Città</th>
+          <th class="text-end pe-4">Azioni</th>
         </tr>
         </thead>
         <tbody>
           @if (isLoading) {
             <tr>
-              <td colspan="3" class="text-center py-5">
+              <td colspan="4" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
                 <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
               </td>
             </tr>
           } @else {
-            @for (m of magazzini; track m.nome) {
+            @for (m of magazzini; track $index) {
               <tr>
                 <td class="fw-semibold text-primary">{{ m.nome }}</td>
                 <td>{{ m.via }}, {{ m.civico }}</td>
                 <td>{{ m.citta }} ({{ m.provincia }}) - {{ m.cap }}</td>
+                <td class="text-end pe-4">
+                  <button class="btn btn-sm btn-info text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInventario" (click)="apriInventario(m)">
+                    <i class="bi bi-box-seam me-1"></i> Gestisci Inventario
+                  </button>
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="3" class="text-center py-5 text-muted">
+                <td colspan="4" class="text-center py-5 text-muted">
                   <i class="bi bi-info-circle d-block fs-3 mb-2"></i>
                   Nessun magazzino trovato.
                 </td>
@@ -70,7 +74,7 @@
     <div class="modal-content">
       <div class="modal-header bg-light">
         <h5 class="modal-title fw-bold text-primary">Aggiungi Nuovo Magazzino</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form #magazzinoForm="ngForm" (ngSubmit)="salvaMagazzino(magazzinoForm)">
         <div class="modal-body">
@@ -104,18 +108,115 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
-          <button type="submit" class="btn btn-success fw-bold" [disabled]="!magazzinoForm.valid || isSaving">
-            @if (isSaving) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
-              Salvataggio...
-            } @else {
-              Salva Magazzino
-            }
-          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-success fw-bold" [disabled]="magazzinoForm.invalid || isSaving">Salva Magazzino</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="modalInventario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-box-seam me-2"></i>Inventario Magazzino: {{ magazzinoSelezionato?.nome }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-light">
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body">
+            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-truck me-2"></i>Carica o Scarica Merce</h6>
+
+            <form #giacenzaForm="ngForm" (ngSubmit)="salvaGiacenza(giacenzaForm)">
+              <div class="row align-items-end">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label small fw-bold">Ingrediente</label>
+                  <select class="form-select border-info" name="ingredienteId" [(ngModel)]="nuovaGiacenza.ingredienteId" required>
+                    <option [ngValue]="0" disabled selected>-- Seleziona Ingrediente --</option>
+                    @for (ing of ingredientiDisponibili; track $index) {
+                      <option [ngValue]="ing.id">{{ ing.nome }} ({{ ing.unitaMisura }})</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                  <label class="form-label small fw-bold">Q.tà (+ o -)</label>
+                  <input type="number" step="0.01" class="form-control" name="quantita" [(ngModel)]="nuovaGiacenza.quantita" required placeholder="Es. 5 o -2">
+                </div>
+                <div class="col-md-2 mb-3">
+                  <label class="form-label small fw-bold">Lotto / Scadenza</label>
+                  <input type="text" class="form-control" name="lotto" [(ngModel)]="nuovaGiacenza.lotto" required placeholder="Lotto XY">
+                </div>
+                <div class="col-md-2 mb-3">
+                  <label class="form-label small fw-bold">Data Movimento</label>
+                  <input type="date" class="form-control" name="dataIngresso" [(ngModel)]="nuovaGiacenza.dataIngresso" required>
+                </div>
+                <div class="col-md-2 mb-3">
+                  <button type="submit" class="btn btn-info text-white w-100 fw-bold shadow-sm"
+                          [disabled]="giacenzaForm.invalid || nuovaGiacenza.ingredienteId === 0 || isSavingGiacenza">
+                    @if (isSavingGiacenza) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-database-add me-1"></i> Esegui
+                    }
+                  </button>
+                </div>
+              </div>
+              <div class="small text-muted mt-1">
+                <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                <strong>Modifiche:</strong> Se il lotto inserito esiste già, la quantità verrà <strong>sommata</strong> (usa valori negativi per scaricare merce).
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <h6 class="fw-bold text-secondary mb-3 ms-1"><i class="bi bi-list-check me-2"></i>Giacenze Attuali</h6>
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+              <tr>
+                <th class="ps-4">Ingrediente</th>
+                <th>Lotto</th>
+                <th>Data Ingresso</th>
+                <th class="pe-4">Quantità Residua</th>
+              </tr>
+              </thead>
+              <tbody>
+                @for (g of giacenzeSelezionate; track $index) {
+                  <tr>
+                    <td class="fw-bold text-primary ps-4">{{ g.nomeIngrediente }}</td>
+                    <td><span class="badge bg-secondary">{{ g.lotto }}</span></td>
+                    <td>{{ g.dataIngresso | date:'dd/MM/yyyy' }}</td>
+                    <td class="fw-bold pe-4">
+                      <span class="badge px-3 py-2 fs-6 shadow-sm" [ngClass]="g.quantita > 0 ? 'bg-success' : 'bg-danger'">
+                        {{ g.quantita }} {{ g.unitaMisura }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-5">
+                      <i class="bi bi-box2 fs-3 d-block mb-2"></i>
+                      Nessun ingrediente in giacenza in questo magazzino.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Chiudi Inventario</button>
+      </div>
+
+    </div>
+  </div>
 </div>

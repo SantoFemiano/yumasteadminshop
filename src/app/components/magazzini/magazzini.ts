@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AdminService } from '../../services/admin';
 import { AuthService } from '../../services/auth';
-import { Magazzino } from '../../models/admin-models';
-import { finalize } from 'rxjs/operators';
-import {NavbarComponent} from '../navbar/navbar';
+import { Magazzino, Ingrediente, IngredienteMagazzinoResponse, IngredienteMagazzinoRequest } from '../../models/admin-models';
+import { finalize, switchMap } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
+import { NavbarComponent } from '../navbar/navbar';
 
 @Component({
   selector: 'app-magazzini',
@@ -16,6 +17,9 @@ import {NavbarComponent} from '../navbar/navbar';
 })
 export class MagazziniComponent implements OnInit {
   magazzini: Magazzino[] = [];
+  tutteLeGiacenze: IngredienteMagazzinoResponse[] = [];
+  ingredientiDisponibili: Ingrediente[] = [];
+
   isLoading: boolean = false;
   isSaving: boolean = false;
 
@@ -23,31 +27,50 @@ export class MagazziniComponent implements OnInit {
     nome: '', via: '', civico: '', cap: '', citta: '', provincia: ''
   };
 
+  // --- Variabili per Modale Inventario ---
+  magazzinoSelezionato: Magazzino | null = null;
+  giacenzeSelezionate: IngredienteMagazzinoResponse[] = [];
+  isSavingGiacenza: boolean = false;
+
+  nuovaGiacenza: IngredienteMagazzinoRequest = {
+    magazzinoId: 0,
+    ingredienteId: 0,
+    quantita: 0,
+    lotto: '',
+    dataIngresso: new Date().toISOString().split('T')[0] // Data di oggi di default
+  };
+
   constructor(
     private adminService: AdminService,
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef // Iniezione per sbloccare la UI
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.caricaMagazzini();
+    this.caricaDati();
   }
 
-  caricaMagazzini() {
+  caricaDati() {
     this.isLoading = true;
-    this.adminService.getMagazzini().pipe(
+
+    forkJoin({
+      magazzini: this.adminService.getMagazzini(),
+      giacenze: this.adminService.getIngredienteMagazzino(),
+      ingredienti: this.adminService.getIngredienti()
+    }).pipe(
       finalize(() => {
         this.isLoading = false;
-        this.cdr.detectChanges(); // Forza l'aggiornamento visivo a fine chiamata
+        this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (dati) => {
-        this.magazzini = dati;
+      next: (res: any) => {
+        this.magazzini = res.magazzini;
+        this.tutteLeGiacenze = res.giacenze;
+        // Filtriamo per sicurezza eventuali ingredienti non correttamente mappati
+        this.ingredientiDisponibili = res.ingredienti.filter((i: any) => i.id != null);
       },
-      error: (err) => {
-        console.error('Errore durante il caricamento dei magazzini:', err);
-      }
+      error: (err) => console.error('Errore nel caricamento dati:', err)
     });
   }
 
@@ -56,30 +79,86 @@ export class MagazziniComponent implements OnInit {
     this.adminService.addMagazzino(this.nuovoMagazzino).pipe(
       finalize(() => {
         this.isSaving = false;
-        this.cdr.detectChanges(); // Forza l'aggiornamento visivo a fine salvataggio
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: (res) => {
         alert('Magazzino aggiunto con successo!');
-
-        // Chiudiamo programmaticamente il modale Bootstrap se è aperto (Opzionale ma utile)
-        const modalElement = document.getElementById('modalMagazzino');
-        if (modalElement) {
-          // Se usi la libreria nativa di Bootstrap (bootstrap.Modal.getInstance) puoi chiuderlo qui
-        }
-
-        this.caricaMagazzini(); // Ricarica la lista
-        form.reset(); // Svuota il form
+        this.caricaDati();
+        form.resetForm(); // Usa resetForm per pulire anche gli stati di validazione
       },
       error: (err) => {
-        console.error('Errore durante il salvataggio:', err);
+        console.error(err);
         alert('Errore durante il salvataggio del magazzino.');
       }
     });
   }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  // --- GESTIONE INVENTARIO ---
+
+  apriInventario(magazzino: Magazzino) {
+    this.magazzinoSelezionato = magazzino;
+    this.aggiornaGiacenzeSelezionate();
+
+    // Inizializza il form vuoto. Ora magazzino.id esiste! 🎉
+    this.nuovaGiacenza = {
+      magazzinoId: magazzino.id!,
+      ingredienteId: 0,
+      quantita: 0,
+      lotto: '',
+      dataIngresso: new Date().toISOString().split('T')[0]
+    };
+
+    // Log di controllo (puoi rimuoverlo quando tutto funziona)
+    console.log("Apertura inventario. ID Magazzino:", magazzino.id);
+  }
+
+  aggiornaGiacenzeSelezionate() {
+    if (this.magazzinoSelezionato?.id) {
+      // Ora questo filtro funzionerà perfettamente
+      this.giacenzeSelezionate = this.tutteLeGiacenze.filter(g => g.magazzinoId === this.magazzinoSelezionato!.id);
+    } else {
+      this.giacenzeSelezionate = [];
+    }
+  }
+
+  salvaGiacenza(form: any) {
+    if (!this.magazzinoSelezionato?.id || this.nuovaGiacenza.ingredienteId === 0) {
+      alert("Errore: Assicurati di aver selezionato un ingrediente.");
+      return;
+    }
+
+    this.isSavingGiacenza = true;
+    this.nuovaGiacenza.magazzinoId = this.magazzinoSelezionato.id;
+
+    this.adminService.addIngredienteMagazzino(this.nuovaGiacenza).pipe(
+      // Aggiorniamo la lista globale dal backend subito dopo aver salvato
+      switchMap(() => this.adminService.getIngredienteMagazzino()),
+      finalize(() => {
+        this.isSavingGiacenza = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (giacenzeAggiornate) => {
+        // Aggiorniamo i dati nella vista
+        this.tutteLeGiacenze = giacenzeAggiornate;
+        this.aggiornaGiacenzeSelezionate();
+
+        // Resettiamo il form per un nuovo inserimento
+        this.nuovaGiacenza = {
+          magazzinoId: this.magazzinoSelezionato!.id!,
+          ingredienteId: 0,
+          quantita: 0,
+          lotto: '',
+          dataIngresso: new Date().toISOString().split('T')[0]
+        };
+
+        form.resetForm(this.nuovaGiacenza);
+      },
+      error: (err) => {
+        console.error("Errore API salvataggio:", err);
+        alert("Errore durante il caricamento della merce. Controlla la console per i dettagli.");
+      }
+    });
   }
 }
