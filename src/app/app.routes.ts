@@ -11,6 +11,7 @@ import {IngredientiComponent} from './components/ingredienti/ingredienti';
 import {AddIngredienteBoxComponent} from './components/add-ingrediente-box/add-ingrediente-box';
 import {OrdiniClientiComponent} from './components/ordini-clienti/ordini-clienti';
 import {ClientiComponent} from './components/clienti/clienti';
+import {CarrelloComponent} from './components/carrello/carrello';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -24,6 +25,8 @@ export const routes: Routes = [
   {path: 'ingrediente-box', component:AddIngredienteBoxComponent, canActivate: [authGuard] },
   {path: 'ordini-clienti', component:OrdiniClientiComponent, canActivate: [authGuard] },
   {path: 'clienti', component:ClientiComponent, canActivate: [authGuard] },
+  {path: 'carrello', component:CarrelloComponent, canActivate: [authGuard] },
+
 
   { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];

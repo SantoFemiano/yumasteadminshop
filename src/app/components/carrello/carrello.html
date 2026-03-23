@@ -1,0 +1,111 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="text-secondary fw-bold">Gestione Clienti e Carrelli</h2>
+      <p class="text-muted">Visualizza la lista dei clienti e ispeziona i loro carrelli attivi.</p>
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>Cognome</th>
+          <th>Email</th>
+          <th class="text-end pe-4">Azioni</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (cliente of clienti; track cliente.id) {
+            <tr>
+              <td class="fw-semibold text-primary">{{ cliente.nome }}</td>
+              <td>{{ cliente.cognome }}</td>
+              <td>{{ cliente.email }}</td>
+              <td class="text-end pe-4">
+                <button class="btn btn-sm btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCarrello" (click)="apriCarrello(cliente)">
+                  <i class="bi bi-cart3 me-1"></i> Vedi Carrello
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="text-center py-5 text-muted">
+                Nessun cliente registrato al momento.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalCarrello" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-cart me-2"></i>Carrello di: {{ clienteSelezionato?.nome }} {{ clienteSelezionato?.cognome }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-light">
+        @if (isLoadingCarrello) {
+          <div class="text-center py-5">
+            <div class="spinner-border text-warning" role="status"></div>
+            <p class="mt-2 text-muted">Recupero carrello in corso...</p>
+          </div>
+        } @else if (carrelloUtente && carrelloUtente.items.length > 0) {
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+              <tr>
+                <th>Prodotto</th>
+                <th class="text-center">Q.tà</th>
+                <th class="text-end">Prezzo Unitario</th>
+                <th class="text-end">Subtotale</th>
+              </tr>
+              </thead>
+              <tbody>
+                @for (item of carrelloUtente.items; track item.boxId) {
+                  <tr>
+                    <td class="fw-bold text-primary">{{ item.nomeBox }}</td>
+                    <td class="text-center">{{ item.quantita }}</td>
+                    <td class="text-end">
+                      @if (item.percentualeSconto > 0) {
+                        <small class="text-decoration-line-through text-muted me-1">€{{ item.prezzoOriginale }}</small>
+                      }
+                      €{{ item.prezzoScontato }}
+                    </td>
+                    <td class="text-end fw-bold">€{{ (item.prezzoScontato * item.quantita).toFixed(2) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card mt-3 border-0 shadow-sm">
+            <div class="card-body bg-white text-end">
+              <p class="mb-1 text-muted">Totale Articoli: <strong>{{ carrelloUtente.totalQuantity }}</strong></p>
+              <h5 class="mb-0 text-success fw-bold">Totale Carrello: €{{ carrelloUtente.totalPrice }}</h5>
+            </div>
+          </div>
+
+        } @else {
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+            Questo utente ha il carrello vuoto.
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>

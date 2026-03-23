@@ -135,3 +135,22 @@ export interface IngredienteMagazzinoResponse {
   lotto: string;
   dataIngresso: string;
 }
+
+export interface Oggetti_carrello {
+  idRigaCarrello:number,
+  boxId:number,
+  nomeBox:string,
+  quantita:number,
+  immagineUrl:string,
+  prezzoOriginale:number,
+  prezzoScontato:number,
+  percentualeSconto:number
+}
+
+export interface Carrello{
+   totalItems:number,
+   totalQuantity:number,
+   totalPrice:number
+   items:Oggetti_carrello[]
+  }
+

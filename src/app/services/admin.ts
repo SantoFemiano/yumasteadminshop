@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {
   AddIngredienteToBoxRequest,
   Allergene,
-  Box,
+  Box, Carrello,
   Fornitore,
   Ingrediente, IngredienteMagazzinoRequest, IngredienteMagazzinoResponse,
   Magazzino,
@@ -120,6 +120,10 @@ export class AdminService {
 
   addIngredienteMagazzino(request: IngredienteMagazzinoRequest): Observable<IngredienteMagazzinoResponse> {
     return this.http.post<IngredienteMagazzinoResponse>(`${this.apiUrl}/add/ingrediente/magazzino`, request);
+  }
+
+  getCarrelloUtente(utenteId: number): Observable<Carrello> {
+    return this.http.get<Carrello>(`${this.apiUrl}/utente/${utenteId}/cliente`);
   }
 
 }
