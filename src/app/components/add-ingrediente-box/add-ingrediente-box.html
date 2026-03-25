@@ -36,9 +36,9 @@
 
             <div class="mb-4">
               <label class="form-label fw-bold text-secondary">Quantità *</label>
-              <div class="input-group shadow-sm">
-                <input type="number" class="form-control border-0" formControlName="quantita" step="1" placeholder="0.00">
-                <span class="input-group-text bg-white border-0 text-muted">unità</span>
+              <div class="input-group shadow-sm border rounded bg-white">
+                <input type="number" class="form-control border-0" formControlName="quantita" step="0.01" min="0.01" placeholder="0.00">
+                <span class="input-group-text bg-transparent border-0 text-primary fw-bold">{{ unitaMisuraSelezionata }}</span>
               </div>
             </div>
 

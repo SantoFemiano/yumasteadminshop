@@ -1,9 +1,9 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService} from '../../services/admin';
-import { Ingrediente, Fornitore, Allergene} from '../../models/admin-models';
-import { NavbarComponent} from '../navbar/navbar';
+import { AdminService } from '../../services/admin';
+import { Ingrediente, Fornitore, Allergene } from '../../models/admin-models';
+import { NavbarComponent } from '../navbar/navbar';
 import { finalize } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 
@@ -19,6 +19,8 @@ export class IngredientiComponent implements OnInit {
   allergeniList: Allergene[] = [];
   tuttiValoriNutrizionali: any[] = [];
   tuttiIngredientiAllergeni: any[] = [];
+  ingredientiInattivi: any[] = [];
+  isLoadingInattive: boolean = false;
 
   // Variabili per la modale dei dettagli
   ingredienteSelezionato: Ingrediente | null = null;
@@ -43,7 +45,7 @@ export class IngredientiComponent implements OnInit {
   getOggettoVuoto(): Ingrediente {
     return {
       ean: '', nome: '', descrizione: '', unitaMisura: 'g', prezzoPerUnita: 0, attivo: true,
-      nomeFornitore:'', partitaIva:null,
+      nomeFornitore:'', partitaIva: null,
       fornitoreId: null as any,
       valoriNutrizionali: { proteine: 0, carboidrati: 0, zuccheri: 0, fibre: 0, grassi: 0, sale: 0, chilocalorie: 0 },
       allergeniIds: []
@@ -102,9 +104,9 @@ export class IngredientiComponent implements OnInit {
         .map(c => c.allergeneId);
     }
 
-
     this.allergeniSelezionati = this.allergeniList.filter(al => idsAllergeni.includes(al.id));
   }
+
   isAllergeneSelected(id: number): boolean {
     return this.nuovoIngrediente.allergeniIds.includes(id);
   }
@@ -126,7 +128,6 @@ export class IngredientiComponent implements OnInit {
         alert('Ingrediente salvato con Valori Nutrizionali e Allergeni!');
         this.caricaDati();
         this.nuovoIngrediente = this.getOggettoVuoto();
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Errore durante il salvataggio:', err);
@@ -137,14 +138,46 @@ export class IngredientiComponent implements OnInit {
 
   // --- METODI PER MODIFICA E CANCELLAZIONE ---
 
-  apriModaleModifica(ing: Ingrediente) {
+  apriModaleModifica(ing: any) {
     this.ingredienteInModifica = { ...ing };
+
+    // FIX: Ricolleghiamo la partitaIvaFornitore al campo partitaIva per far funzionare la tendina <select>
+    if (this.ingredienteInModifica) {
+      this.ingredienteInModifica.partitaIva = ing.partitaIvaFornitore || ing.partitaIva;
+
+      // Inizializziamo un oggetto vuoto per i valori nutrizionali per sicurezza
+      this.ingredienteInModifica.valoriNutrizionali = {
+        chilocalorie: 0, proteine: 0, carboidrati: 0, zuccheri: 0, grassi: 0, fibre: 0, sale: 0
+      };
+
+      // FIX: Usiamo 'tuttiValoriNutrizionali' invece di 'valoriNutrizionali'
+      if (this.tuttiValoriNutrizionali) {
+        const valoriEsistenti = this.tuttiValoriNutrizionali.find((v: any) => v.nome_Ingrediente === ing.nome);
+        if (valoriEsistenti) {
+          this.ingredienteInModifica.valoriNutrizionali = { ...valoriEsistenti };
+        }
+      }
+    }
   }
 
   salvaModificaIngrediente() {
     if (this.ingredienteInModifica && this.ingredienteInModifica.id) {
       this.isSaving = true;
-      this.adminService.updateIngrediente(this.ingredienteInModifica.id, this.ingredienteInModifica).pipe(
+
+      // Costruiamo un oggetto pulito per il backend
+      const ingDaModificare = {
+        ean: this.ingredienteInModifica.ean,
+        partitaIva: this.ingredienteInModifica.partitaIva,
+        nome: this.ingredienteInModifica.nome,
+        descrizione: this.ingredienteInModifica.descrizione,
+        prezzoPerUnita: this.ingredienteInModifica.prezzoPerUnita,
+        unitaMisura: this.ingredienteInModifica.unitaMisura,
+        attivo: this.ingredienteInModifica.attivo,
+        valoriNutrizionali: this.ingredienteInModifica.valoriNutrizionali
+      };
+
+      // Facciamo il cast ad any per bypassare controlli TypeScript extra
+      this.adminService.updateIngrediente(this.ingredienteInModifica.id, ingDaModificare as any).pipe(
         finalize(() => {
           this.isSaving = false;
           this.cdr.detectChanges();
@@ -152,7 +185,7 @@ export class IngredientiComponent implements OnInit {
       ).subscribe({
         next: () => {
           alert('Ingrediente aggiornato con successo!');
-          this.ingredienteInModifica = null; // Chiude la visualizzazione nel modale
+          this.ingredienteInModifica = null;
           this.caricaDati();
         },
         error: (err) => {
@@ -178,4 +211,51 @@ export class IngredientiComponent implements OnInit {
       });
     }
   }
+
+  apriModaleInattive() {
+    this.isLoadingInattive = true;
+    this.adminService.getIngredientiInattivi().pipe(
+      finalize(() => {
+        this.isLoadingInattive = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (res: any) => {
+        this.ingredientiInattivi = res;
+      },
+      error: (err) => { console.error('Errore nel caricamento ingredienti inattivi:', err); }
+    });
+  }
+
+  riattivaIngrediente(ing: any) {
+    if (confirm(`Vuoi riattivare l'ingrediente "${ing.nome}" per poterlo usare di nuovo nelle Box?`)) {
+
+      const ingDaRiattivare = {
+        ean: ing.ean,
+        partitaIva: ing.partitaIvaFornitore,
+        nome: ing.nome,
+        descrizione: ing.descrizione,
+        prezzoPerUnita: ing.prezzoPerUnita,
+        unitaMisura: ing.unitaMisura,
+        attivo: true,
+        valoriNutrizionali: {
+          chilocalorie: 0, proteine: 0, carboidrati: 0,
+          zuccheri: 0, grassi: 0, fibre: 0, sale: 0
+        }
+      };
+
+      this.adminService.updateIngrediente(ing.id, ingDaRiattivare as any).subscribe({
+        next: () => {
+          alert('Ingrediente riattivato con successo!');
+          this.apriModaleInattive();
+          this.caricaDati();
+        },
+        error: (err: any) => {
+          console.error('Errore durante la riattivazione:', err);
+          alert('Errore durante la riattivazione.');
+        }
+      });
+    }
+  }
+
 }

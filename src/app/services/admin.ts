@@ -24,7 +24,6 @@ export class AdminService {
 
   // Metodo per recuperare la lista dei fornitori
   getFornitori(): Observable<Fornitore[]> {
-    // Grazie all'Interceptor creato prima, il token verrà aggiunto automaticamente a questa chiamata!
     return this.http.get<Fornitore[]>(`${this.apiUrl}/fornitori`);
 
   }
@@ -196,9 +195,16 @@ export class AdminService {
     return this.http.get<any>(`${this.apiUrl}/boxes/inattive`);
   }
 
+
+  getIngredientiInattivi(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ingredienti/inattivi`);
+  }
+
+
   getDashboardStats(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/dashboard/stats`);
   }
+
 
 
 }

@@ -20,7 +20,6 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
   ingredienti: any[] = [];
   ingredientiAttuali: any[] = [];
 
-  // Variabili per gestire l'UI ed evitare rallentamenti visivi
   isLoading: boolean = false;
   isSubmitting: boolean = false;
 
@@ -41,28 +40,25 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
 
     this.caricaDatiIniziali();
 
-    // Gestione intelligente del cambio Box
     this.boxSub = this.composizioneForm.get('boxId')!.valueChanges.pipe(
       tap(() => {
-        // Appena l'utente cambia box, svuota la lista e mostra subito il caricamento
         this.isLoading = true;
         this.ingredientiAttuali = [];
       }),
       switchMap(boxId => {
-        if (!boxId) return of([]); // Se non c'è box, ritorna vuoto
+        if (!boxId) return of([]);
 
-        // switchMap annulla le richieste precedenti se l'utente clicca velocemente
         return this.adminService.getIngredientiDellaBox(boxId).pipe(
           catchError(err => {
             console.error('Errore nel recupero ingredienti', err);
-            return of([]); // In caso di errore non blocca l'applicazione
+            return of([]);
           })
         );
       })
     ).subscribe(ingredienti => {
       this.ingredientiAttuali = ingredienti;
       this.isLoading = false;
-      this.cdr.detectChanges();// Ferma il caricamento
+      this.cdr.detectChanges();
     });
   }
 
@@ -72,13 +68,23 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
     }
   }
 
+  // --- NUOVO METODO: Ricava l'unità di misura in tempo reale ---
+  get unitaMisuraSelezionata(): string {
+    const ingredienteId = this.composizioneForm.get('ingredienteId')?.value;
+    if (!ingredienteId) {
+      return 'unità';
+    }
+    const ing = this.ingredienti.find(i => i.id === Number(ingredienteId));
+    return ing ? ing.unitaMisura : 'unità';
+  }
+  // --------------------------------------------------------------
+
   caricaDatiIniziali() {
     this.adminService.getBoxes().subscribe(res => {
       this.boxes = res.content || res;
       this.cdr.detectChanges();
     });
     this.adminService.getIngredienti().subscribe(res => {
-      // res.content se paginato, altrimenti res diretto
       this.ingredienti = res.content || res;
       this.cdr.detectChanges();
     });
@@ -90,7 +96,7 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSubmitting = true; // Disabilita il bottone
+    this.isSubmitting = true;
 
     const formValues = this.composizioneForm.value;
     const boxId = formValues.boxId;
@@ -101,15 +107,13 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
 
     this.adminService.addIngredientToBox(boxId, request).subscribe({
       next: () => {
-        // Ricarica la tabellina di destra
         this.ricaricaIngredienti(boxId);
 
-        // Svuota solo i campi dell'ingrediente, lasciando la box selezionata
         this.composizioneForm.patchValue({ ingredienteId: '', quantita: '' });
         this.composizioneForm.get('ingredienteId')?.markAsUntouched();
         this.composizioneForm.get('quantita')?.markAsUntouched();
         this.cdr.detectChanges();
-        this.isSubmitting = false; // Riattiva il bottone
+        this.isSubmitting = false;
       },
       error: (err) => {
         console.error(err);
@@ -119,12 +123,10 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- MODIFICA: Ricaviamo l'ID partendo dal nome ---
   onRemoveIngredienteDallaBox(nomeIngrediente: string) {
     const boxId = this.composizioneForm.get('boxId')?.value;
     if (!boxId) return;
 
-    // Incrociamo i dati: cerchiamo l'ingrediente nella lista globale partendo dal nome
     const ingredienteCorrispondente = this.ingredienti.find(i => i.nome === nomeIngrediente);
 
     if (!ingredienteCorrispondente || !ingredienteCorrispondente.id) {
@@ -136,7 +138,7 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
       this.adminService.removeIngredienteFromBox(boxId, ingredienteCorrispondente.id).subscribe({
         next: () => {
           alert('Ingrediente rimosso con successo dalla Box!');
-          this.ricaricaIngredienti(boxId); // Aggiorna la tabella a schermo
+          this.ricaricaIngredienti(boxId);
         },
         error: (err) => {
           console.error(err);
@@ -146,7 +148,6 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Metodo privato usato solo per fare il refresh dopo l'inserimento/rimozione
   private ricaricaIngredienti(boxId: number) {
     this.isLoading = true;
     this.adminService.getIngredientiDellaBox(boxId).subscribe({
