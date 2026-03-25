@@ -1,0 +1,194 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="text-secondary fw-bold">Gestione Fornitori</h2>
+        <p class="text-muted">Lista dei fornitori registrati a sistema.</p>
+      </div>
+      <div>
+        <button class="btn btn-success shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalFornitore">
+          <i class="bi bi-plus-lg me-1"></i> Nuovo Fornitore
+        </button>
+        <button class="btn btn-primary shadow-sm" (click)="caricaFornitori()" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-arrow-clockwise me-1"></i>
+          }
+          Aggiorna Lista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0 mb-5">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+          <tr>
+            <th class="ps-4">Partita IVA</th>
+            <th>Nome Fornitore</th>
+            <th>Indirizzo</th>
+            <th>Città</th>
+            <th class="pe-4 text-end">Azioni</th>
+          </tr>
+          </thead>
+          <tbody>
+            @if (isLoading) {
+              <tr>
+                <td colspan="5" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
+                </td>
+              </tr>
+            } @else {
+              @for (f of fornitori; track f.partitaIva) {
+                <tr>
+                  <td class="fw-semibold text-primary ps-4">{{ f.partitaIva }}</td>
+                  <td class="fw-bold">{{ f.nome }}</td>
+                  <td>{{ f.via }}, {{ f.civico }}</td>
+                  <td>{{ f.citta }} ({{ f.provincia }}) - {{ f.cap }}</td>
+                  <td class="pe-4 text-end">
+                    <div class="d-flex gap-2 justify-content-end align-items-center">
+                      <button class="btn btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalModificaFornitore" (click)="apriModaleModifica(f)">
+                        <i class="bi bi-pencil-square me-1"></i> Modifica
+                      </button>
+                      <button class="btn btn-danger shadow-sm" (click)="onDeleteFornitore(f.id)">
+                        <i class="bi bi-trash me-1"></i> Elimina
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-buildings d-block fs-3 mb-2"></i>
+                    Nessun fornitore trovato.
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalFornitore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-primary">Aggiungi Nuovo Fornitore</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form #fornitoreForm="ngForm" (ngSubmit)="salvaFornitore(fornitoreForm)">
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Partita IVA</label>
+              <input type="text" class="form-control" name="partitaIva" [(ngModel)]="nuovoFornitore.partitaIva" required maxlength="11">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Nome Azienda</label>
+              <input type="text" class="form-control" name="nome" [(ngModel)]="nuovoFornitore.nome" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Via / Indirizzo</label>
+              <input type="text" class="form-control" name="via" [(ngModel)]="nuovoFornitore.via" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Civico</label>
+              <input type="text" class="form-control" name="civico" [(ngModel)]="nuovoFornitore.civico" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 mb-3">
+              <label class="form-label small fw-bold">Città</label>
+              <input type="text" class="form-control" name="citta" [(ngModel)]="nuovoFornitore.citta" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Provincia (Sigla)</label>
+              <input type="text" class="form-control" name="provincia" [(ngModel)]="nuovoFornitore.provincia" required maxlength="2">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label small fw-bold">CAP</label>
+              <input type="text" class="form-control" name="cap" [(ngModel)]="nuovoFornitore.cap" required maxlength="5">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-success fw-bold" [disabled]="!fornitoreForm.valid || isSaving">
+            @if (isSaving) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            Salva Fornitore
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalModificaFornitore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow" *ngIf="fornitoreInModifica">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-pencil-square me-2"></i>Modifica Fornitore
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form #editFornitoreForm="ngForm" (ngSubmit)="salvaModificaFornitore()">
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Partita IVA</label>
+              <input type="text" class="form-control bg-light" name="editPartitaIva" [(ngModel)]="fornitoreInModifica.partitaIva" required maxlength="11" readonly title="La Partita IVA non può essere modificata">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Nome Azienda</label>
+              <input type="text" class="form-control" name="editNome" [(ngModel)]="fornitoreInModifica.nome" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Via / Indirizzo</label>
+              <input type="text" class="form-control" name="editVia" [(ngModel)]="fornitoreInModifica.via" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Civico</label>
+              <input type="text" class="form-control" name="editCivico" [(ngModel)]="fornitoreInModifica.civico" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 mb-3">
+              <label class="form-label small fw-bold">Città</label>
+              <input type="text" class="form-control" name="editCitta" [(ngModel)]="fornitoreInModifica.citta" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Provincia (Sigla)</label>
+              <input type="text" class="form-control" name="editProvincia" [(ngModel)]="fornitoreInModifica.provincia" required maxlength="2">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label small fw-bold">CAP</label>
+              <input type="text" class="form-control" name="editCap" [(ngModel)]="fornitoreInModifica.cap" required maxlength="5">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-warning fw-bold" data-bs-dismiss="modal" [disabled]="!editFornitoreForm.valid || isSaving">
+            Salva Modifiche
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
