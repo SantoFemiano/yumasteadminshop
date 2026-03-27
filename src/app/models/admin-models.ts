@@ -91,12 +91,12 @@ export interface Ingrediente {
   nome: string;
   descrizione: string;
   unitaMisura: string;
+  pesoPerPezzo?: number;
   prezzoPerUnita: number;
   attivo: boolean;
   valoriNutrizionali: ValoriNutrizionali;
   allergeniIds: number[];
 }
-
 export interface Indirizzo {
   id: number;
   via: string;

@@ -44,7 +44,7 @@ export class IngredientiComponent implements OnInit {
 
   getOggettoVuoto(): Ingrediente {
     return {
-      ean: '', nome: '', descrizione: '', unitaMisura: 'g', prezzoPerUnita: 0, attivo: true,
+      ean: '', nome: '', descrizione: '', unitaMisura: 'g', pesoPerPezzo: undefined, prezzoPerUnita: 0, attivo: true,
       nomeFornitore:'', partitaIva: null,
       fornitoreId: null as any,
       valoriNutrizionali: { proteine: 0, carboidrati: 0, zuccheri: 0, fibre: 0, grassi: 0, sale: 0, chilocalorie: 0 },
@@ -117,6 +117,11 @@ export class IngredientiComponent implements OnInit {
       return;
     }
 
+    // Pulisci il peso se non è a pezzi prima di inviare al backend
+    if (this.nuovoIngrediente.unitaMisura !== 'pz') {
+      this.nuovoIngrediente.pesoPerPezzo = undefined;
+    }
+
     this.isSaving = true;
     this.adminService.addIngrediente(this.nuovoIngrediente).pipe(
       finalize(() => {
@@ -172,6 +177,8 @@ export class IngredientiComponent implements OnInit {
         descrizione: this.ingredienteInModifica.descrizione,
         prezzoPerUnita: this.ingredienteInModifica.prezzoPerUnita,
         unitaMisura: this.ingredienteInModifica.unitaMisura,
+        // Invia il peso per pezzo SOLO se l'unità è a pezzi
+        pesoPerPezzo: this.ingredienteInModifica.unitaMisura === 'pz' ? this.ingredienteInModifica.pesoPerPezzo : undefined,
         attivo: this.ingredienteInModifica.attivo,
         valoriNutrizionali: this.ingredienteInModifica.valoriNutrizionali
       };
