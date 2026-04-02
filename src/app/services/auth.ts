@@ -10,12 +10,13 @@ export const TOKEN_KEY = 'yumaste_admin_token';
   providedIn: 'root'
 })
 export class AuthService {
+  private apiRenderUrlAuth='https://yumaste-backend.onrender.com/api/auth'
   private apiUrl = 'http://localhost:8084/api/auth';
 
   constructor(private http: HttpClient) { }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+    return this.http.post<AuthResponse>(`${this.apiRenderUrlAuth}/login`, credentials).pipe(
       tap(response => this.saveToken(response.token))
     );
   }
@@ -40,7 +41,7 @@ export class AuthService {
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
+    return this.http.post<AuthResponse>(`${this.apiRenderUrlAuth}/register`, data).pipe(
       tap(response => this.saveToken(response.token))
     );
   }

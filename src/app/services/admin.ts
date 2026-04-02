@@ -17,7 +17,6 @@ import {
 })
 export class AdminService {
   // L'URL base per il controller degli admin
-  private apiRenderUrlAuth='https://yumaste-backend.onrender.com/api/auth'
   private apiRenderUrlPublic='https://yumaste-backend.onrender.com/api/public'
   private apiRenderUrlAdmin='https://yumaste-backend.onrender.com/api/admin'
 
