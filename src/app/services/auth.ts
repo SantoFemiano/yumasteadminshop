@@ -10,7 +10,7 @@ export const TOKEN_KEY = 'yumaste_admin_token';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiRenderUrlAuth='84.8.250.58:8084/api/auth'
+  private apiRenderUrlAuth='https://yumaste.duckdns.org/api/auth'
   private apiUrl = 'http://localhost:8084/api/auth';
 
   constructor(private http: HttpClient) { }
