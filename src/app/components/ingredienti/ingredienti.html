@@ -163,36 +163,49 @@
             </div>
 
             <div class="tab-pane fade" id="tabNutrizionali">
-              <div class="row">
-                <div class="col-md-12 mb-3">
-                  <label class="form-label small fw-bold text-primary">Chilocalorie (Kcal)</label>
-                  <input type="number" step="0.1" min="0" class="form-control border-primary" name="chilocalorie" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.chilocalorie">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Proteine (g)</label>
-                  <input type="number" step="0.1" min="0" class="form-control" name="proteine" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.proteine">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Carboidrati (g)</label>
-                  <input type="number" step="0.1" min="0" class="form-control" name="carboidrati" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.carboidrati">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Di cui Zuccheri (g)</label>
-                  <input type="number" step="0.1" min="0" class="form-control" name="zuccheri" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.zuccheri">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Grassi (g)</label>
-                  <input type="number" step="0.1" min="0" class="form-control" name="grassi" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.grassi">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Fibre (g)</label>
-                  <input type="number" step="0.1" min="0" class="form-control" name="fibre" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.fibre">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small fw-bold">Sale (g)</label>
-                  <input type="number" step="0.01" min="0" class="form-control" name="sale" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.sale">
+
+              <div class="form-check form-switch mb-4 p-3 rounded" [ngClass]="usaIA_ValoriNutrizionali ? 'bg-primary-subtle border border-primary' : 'bg-light border'">
+                <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="usaIASwitch" name="usaIA" [(ngModel)]="usaIA_ValoriNutrizionali" style="transform: scale(1.3); margin-top: 0.3rem;">
+                <label class="form-check-label fw-bold ms-3" [ngClass]="usaIA_ValoriNutrizionali ? 'text-primary' : 'text-secondary'" for="usaIASwitch">
+                  <i class="bi bi-robot me-1"></i> Compila automaticamente con AI (Gemini)
+                </label>
+                <div class="small mt-1 ms-5" [ngClass]="usaIA_ValoriNutrizionali ? 'text-primary' : 'text-muted'">
+                  Se attivo, i valori nutrizionali verranno stimati e compilati dal sistema in base al nome dell'ingrediente ("{{ nuovoIngrediente.nome || 'Inserisci prima un nome' }}").
                 </div>
               </div>
+
+              @if (!usaIA_ValoriNutrizionali) {
+                <div class="row fade-in">
+                  <div class="col-md-12 mb-3">
+                    <label class="form-label small fw-bold text-primary">Chilocalorie (Kcal)</label>
+                    <input type="number" step="0.1" min="0" class="form-control border-primary" name="chilocalorie" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.chilocalorie">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Proteine (g)</label>
+                    <input type="number" step="0.1" min="0" class="form-control" name="proteine" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.proteine">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Carboidrati (g)</label>
+                    <input type="number" step="0.1" min="0" class="form-control" name="carboidrati" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.carboidrati">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Di cui Zuccheri (g)</label>
+                    <input type="number" step="0.1" min="0" class="form-control" name="zuccheri" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.zuccheri">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Grassi (g)</label>
+                    <input type="number" step="0.1" min="0" class="form-control" name="grassi" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.grassi">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Fibre (g)</label>
+                    <input type="number" step="0.1" min="0" class="form-control" name="fibre" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.fibre">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold">Sale (g)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" name="sale" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.sale">
+                  </div>
+                </div>
+              }
             </div>
 
             <div class="tab-pane fade" id="tabAllergeni">
