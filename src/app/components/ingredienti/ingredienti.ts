@@ -35,8 +35,11 @@ export class IngredientiComponent implements OnInit {
 
   nuovoIngrediente: Ingrediente = this.getOggettoVuoto();
 
-  // SWITCH PER L'IA DEI VALORI NUTRIZIONALI (Attivo di default)
+  // SWITCH PER L'IA DEI VALORI NUTRIZIONALI (In Creazione - Attivo di default)
   usaIA_ValoriNutrizionali: boolean = true;
+
+  // SWITCH PER L'IA DEI VALORI NUTRIZIONALI (In Modifica - Spento di default per sicurezza)
+  usaIA_ModificaValoriNutrizionali: boolean = false;
 
   constructor(private adminService: AdminService,
               private cdr: ChangeDetectorRef) {}
@@ -94,7 +97,16 @@ export class IngredientiComponent implements OnInit {
 
   apriDettagli(ing: Ingrediente) {
     this.ingredienteSelezionato = ing;
-    this.valoriSelezionati = this.tuttiValoriNutrizionali.find(v => v.nome_Ingrediente === ing.nome);
+
+    // FIX: Legge i valori nutrizionali direttamente dall'ingrediente, ignorando possibili problemi della lista separata!
+    if (ing.valoriNutrizionali) {
+      this.valoriSelezionati = ing.valoriNutrizionali;
+    } else {
+      // Fallback più sicuro (cerca per id o nome senza errori di maiuscole/minuscole)
+      this.valoriSelezionati = this.tuttiValoriNutrizionali.find((v: any) =>
+        v.ingredienteId === ing.id || v.nome_Ingrediente === ing.nome || v.nomeIngrediente === ing.nome
+      );
+    }
 
     let idsAllergeni: number[] = [];
 
@@ -156,22 +168,30 @@ export class IngredientiComponent implements OnInit {
   // --- METODI PER MODIFICA E CANCELLAZIONE ---
 
   apriModaleModifica(ing: any) {
+    this.usaIA_ModificaValoriNutrizionali = false; // Resetta lo switch IA ogni volta che si apre la modale
     this.ingredienteInModifica = { ...ing };
 
     // FIX: Ricolleghiamo la partitaIvaFornitore al campo partitaIva per far funzionare la tendina <select>
     if (this.ingredienteInModifica) {
       this.ingredienteInModifica.partitaIva = ing.partitaIvaFornitore || ing.partitaIva;
 
-      // Inizializziamo un oggetto vuoto per i valori nutrizionali per sicurezza
-      this.ingredienteInModifica.valoriNutrizionali = {
-        chilocalorie: 0, proteine: 0, carboidrati: 0, zuccheri: 0, grassi: 0, fibre: 0, sale: 0
-      };
+      // FIX: Prendi direttamente l'oggetto valori nutrizionali già salvato nell'ingrediente
+      if (ing.valoriNutrizionali) {
+        this.ingredienteInModifica.valoriNutrizionali = { ...ing.valoriNutrizionali };
+      } else {
+        // Fallback di sicurezza: Inizializza a zero se non esistono
+        this.ingredienteInModifica.valoriNutrizionali = {
+          chilocalorie: 0, proteine: 0, carboidrati: 0, zuccheri: 0, grassi: 0, fibre: 0, sale: 0
+        };
 
-      // FIX: Usiamo 'tuttiValoriNutrizionali' invece di 'valoriNutrizionali'
-      if (this.tuttiValoriNutrizionali) {
-        const valoriEsistenti = this.tuttiValoriNutrizionali.find((v: any) => v.nome_Ingrediente === ing.nome);
-        if (valoriEsistenti) {
-          this.ingredienteInModifica.valoriNutrizionali = { ...valoriEsistenti };
+        // Ulteriore fallback dalla lista esterna
+        if (this.tuttiValoriNutrizionali) {
+          const valoriEsistenti = this.tuttiValoriNutrizionali.find((v: any) =>
+            v.ingredienteId === ing.id || v.nome_Ingrediente === ing.nome || v.nomeIngrediente === ing.nome
+          );
+          if (valoriEsistenti) {
+            this.ingredienteInModifica.valoriNutrizionali = { ...valoriEsistenti };
+          }
         }
       }
     }
@@ -180,6 +200,14 @@ export class IngredientiComponent implements OnInit {
   salvaModificaIngrediente() {
     if (this.ingredienteInModifica && this.ingredienteInModifica.id) {
       this.isSaving = true;
+
+      // --- INIZIO AGGIUNTA IA ---
+      // Se l'utente ha scelto di usare l'IA per ricalcolare, inviamo null
+      let valoriDaInviare = this.ingredienteInModifica.valoriNutrizionali;
+      if (this.usaIA_ModificaValoriNutrizionali) {
+        valoriDaInviare = null as any;
+      }
+      // --- FINE AGGIUNTA IA ---
 
       // Costruiamo un oggetto pulito per il backend
       const ingDaModificare = {
@@ -192,7 +220,7 @@ export class IngredientiComponent implements OnInit {
         // Invia il peso per pezzo SOLO se l'unità è a pezzi
         pesoPerPezzo: this.ingredienteInModifica.unitaMisura === 'pz' ? this.ingredienteInModifica.pesoPerPezzo : undefined,
         attivo: this.ingredienteInModifica.attivo,
-        valoriNutrizionali: this.ingredienteInModifica.valoriNutrizionali
+        valoriNutrizionali: valoriDaInviare // Invia null se l'IA è attiva, altrimenti i valori compilati
       };
 
       // Facciamo il cast ad any per bypassare controlli TypeScript extra
