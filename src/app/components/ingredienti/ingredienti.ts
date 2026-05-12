@@ -35,6 +35,9 @@ export class IngredientiComponent implements OnInit {
 
   nuovoIngrediente: Ingrediente = this.getOggettoVuoto();
 
+  // SWITCH PER L'IA DEI VALORI NUTRIZIONALI (Attivo di default)
+  usaIA_ValoriNutrizionali: boolean = true;
+
   constructor(private adminService: AdminService,
               private cdr: ChangeDetectorRef) {}
 
@@ -122,17 +125,26 @@ export class IngredientiComponent implements OnInit {
       this.nuovoIngrediente.pesoPerPezzo = undefined;
     }
 
+    // Creiamo una copia dell'oggetto per evitare di modificare il form visualmente
+    let ingredienteDaSalvare = { ...this.nuovoIngrediente };
+
+    // Se stiamo usando l'IA, i valori nutrizionali devono essere inviati come null
+    if (this.usaIA_ValoriNutrizionali) {
+      ingredienteDaSalvare.valoriNutrizionali = null as any;
+    }
+
     this.isSaving = true;
-    this.adminService.addIngrediente(this.nuovoIngrediente).pipe(
+    this.adminService.addIngrediente(ingredienteDaSalvare).pipe(
       finalize(() => {
         this.isSaving = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
       next: () => {
-        alert('Ingrediente salvato con Valori Nutrizionali e Allergeni!');
+        alert('Ingrediente salvato con successo!');
         this.caricaDati();
         this.nuovoIngrediente = this.getOggettoVuoto();
+        this.usaIA_ValoriNutrizionali = true; // Resettiamo lo switch a true
       },
       error: (err) => {
         console.error('Errore durante il salvataggio:', err);
