@@ -26,8 +26,8 @@ export class AdminService {
 
   constructor(private http: HttpClient) { }
 
-  generaIngredientiAi(quantita: number): Observable<IngredienteResponseDTO[]> {
-    return this.http.post<IngredienteResponseDTO[]>(
+  generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
+    return this.http.post<Ingrediente[]>(
       `${this.apiUrl}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
       {}
     );
