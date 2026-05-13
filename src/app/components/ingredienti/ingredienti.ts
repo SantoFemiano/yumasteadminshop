@@ -21,6 +21,7 @@ export class IngredientiComponent implements OnInit {
   tuttiIngredientiAllergeni: any[] = [];
   ingredientiInattivi: any[] = [];
   isLoadingInattive: boolean = false;
+  isGeneratingAi: boolean = false;
 
   // Variabili per la modale dei dettagli
   ingredienteSelezionato: Ingrediente | null = null;
@@ -163,6 +164,33 @@ export class IngredientiComponent implements OnInit {
         alert('Errore! Verifica i campi inseriti. (Controlla la console)');
       }
     });
+  }
+
+  // --- NUOVO METODO: Generazione Ingredienti con Intelligenza Artificiale ---
+  generaConIA() {
+    const input = prompt("Quanti ingredienti vuoi inventare con l'Intelligenza Artificiale?", "3");
+    const quantita = parseInt(input || '0', 10);
+
+    if (quantita > 0) {
+      this.isGeneratingAi = true; // Mostra il caricamento
+
+      // Chiama il metodo nel tuo AdminService
+      this.adminService.generaIngredientiAi(quantita).pipe(
+        finalize(() => {
+          this.isGeneratingAi = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: (nuoviIngredienti: any[]) => {
+          alert(`Successo! L'IA ha creato e inserito nel magazzino ${nuoviIngredienti.length} nuovi ingredienti.`);
+          this.caricaDati(); // Ricarica la tabella
+        },
+        error: (err) => {
+          console.error("Errore IA:", err);
+          alert("Ops! C'è stato un problema durante la generazione AI. Assicurati di avere almeno un fornitore registrato.");
+        }
+      });
+    }
   }
 
   // --- METODI PER MODIFICA E CANCELLAZIONE ---

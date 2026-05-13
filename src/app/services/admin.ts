@@ -26,6 +26,13 @@ export class AdminService {
 
   constructor(private http: HttpClient) { }
 
+  generaIngredientiAi(quantita: number): Observable<IngredienteResponseDTO[]> {
+    return this.http.post<IngredienteResponseDTO[]>(
+      `${this.apiUrl}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
+      {}
+    );
+  }
+
   // Metodo per recuperare la lista dei fornitori
   getFornitori(): Observable<Fornitore[]> {
     return this.http.get<Fornitore[]>(`${this.apiRenderUrlAdmin}/fornitori`);
