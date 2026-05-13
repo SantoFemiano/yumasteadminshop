@@ -28,7 +28,7 @@ export class AdminService {
 
   generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
     return this.http.post<Ingrediente[]>(
-      `${this.apiUrl}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
+      `${this.apiRenderUrlAdmin}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
       {}
     );
   }
