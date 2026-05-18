@@ -9,7 +9,7 @@ import {
   Ingrediente, IngredienteMagazzinoRequest, IngredienteMagazzinoResponse,
   Magazzino,
   PageResponse,
-  Sconto, Cliente
+  Sconto, Cliente, AiGenerateBoxResponseDTO
 } from '../models/admin-models';
 
 @Injectable({
