@@ -26,6 +26,11 @@ export class AdminService {
 
   constructor(private http: HttpClient) { }
 
+  generateBoxWithAi(suggerimento?: string): Observable<AiGenerateBoxResponseDTO> {
+    const body = suggerimento ? { suggerimentoOpzionale: suggerimento } : {};
+    return this.http.post<AiGenerateBoxResponseDTO>(`${this.apiRenderUrlAdmin}/admin/ai/genera-box`, body);
+  }
+
   generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
     return this.http.post<Ingrediente[]>(
       `${this.apiRenderUrlAdmin}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
