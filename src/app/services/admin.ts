@@ -9,7 +9,7 @@ import {
   Ingrediente, IngredienteMagazzinoRequest, IngredienteMagazzinoResponse,
   Magazzino,
   PageResponse,
-  Sconto, Cliente
+  Sconto, Cliente, AiGenerateBoxResponseDTO
 } from '../models/admin-models';
 
 @Injectable({
@@ -25,6 +25,11 @@ export class AdminService {
 
 
   constructor(private http: HttpClient) { }
+
+  generateBoxWithAi(suggerimento?: string): Observable<AiGenerateBoxResponseDTO> {
+    const body = suggerimento ? { suggerimentoOpzionale: suggerimento } : {};
+    return this.http.post<AiGenerateBoxResponseDTO>(`${this.apiRenderUrlAdmin}/admin/ai/genera-box`, body);
+  }
 
   generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
     return this.http.post<Ingrediente[]>(
