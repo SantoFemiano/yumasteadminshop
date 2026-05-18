@@ -66,6 +66,21 @@ export interface Fornitore {
   provincia: string;
 }
 
+export interface AiBoxIngredientDTO {
+  ingredienteId: number;
+  quantita: number;
+}
+
+export interface AiGenerateBoxResponseDTO {
+  nome: string;
+  descrizione: string;
+  categoria: string;
+  prezzo: number;
+  porzioni: number;
+  urlImmagine: string;
+  ingredienti: AiBoxIngredientDTO[];
+}
+
 export interface ValoriNutrizionali {
   proteine: number;
   carboidrati: number;
